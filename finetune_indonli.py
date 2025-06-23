@@ -5,23 +5,7 @@ from datasets import load_dataset, load_metric
 def main():
     # 1. Load IndoNLI dataset
     print("Loading IndoNLI dataset...")
-    # You might need to specify the correct dataset name or path
-    # For example: dataset = load_dataset("indonli") or load_dataset("csv", data_files={"train": "train.csv", "validation": "val.csv"})
-    # For now, using a placeholder
-    try:
-        dataset = load_dataset("indonli")
-    except Exception as e:
-        print(f"Could not load 'indonli' directly. Please ensure it's available or provide a local path. Error: {e}")
-        print("Attempting to load a dummy dataset for demonstration purposes.")
-        # Create a dummy dataset for demonstration if indonli is not directly available
-        from datasets import Dataset
-        dummy_data = {
-            "premise": ["This is a premise.", "Another premise here."],
-            "hypothesis": ["This is a hypothesis.", "And another one."],
-            "label": [0, 1] # Example labels
-        }
-        dataset = Dataset.from_dict(dummy_data).train_test_split(test_size=0.2)
-        dataset["validation"] = dataset["test"] # Use test split as validation for simplicity
+    dataset = load_dataset("afaji/indonli")
 
     print("Dataset loaded.")
     print(dataset)
