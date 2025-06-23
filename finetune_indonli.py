@@ -1,4 +1,5 @@
 import torch
+import mlflow
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
 from datasets import load_dataset, load_metric
 
@@ -33,6 +34,7 @@ def main():
         save_total_limit=1,
         load_best_model_at_end=True,
         metric_for_best_model="accuracy",
+        report_to="mlflow",
     )
 
     metric = load_metric("accuracy")
@@ -51,11 +53,16 @@ def main():
         compute_metrics=compute_metrics,
     )
 
+    mlflow.start_run(run_name="indoreoberta-finetune")
+
     trainer_roberta.train()
     print("indoreoberta fine-tuning complete.")
     print("Evaluating indoreoberta...")
     eval_results_roberta = trainer_roberta.evaluate()
     print(f"indoreoberta evaluation results: {eval_results_roberta}")
+    mlflow.log_metrics(eval_results_roberta)
+
+    mlflow.end_run()
 
     # 4. Fine-tune indoBERT
     print("\n--- Fine-tuning indoBERT ---")
@@ -76,6 +83,7 @@ def main():
         save_total_limit=1,
         load_best_model_at_end=True,
         metric_for_best_model="accuracy",
+        report_to="mlflow",
     )
 
     trainer_bert = Trainer(
@@ -87,11 +95,16 @@ def main():
         compute_metrics=compute_metrics,
     )
 
+    mlflow.start_run(run_name="indobert-finetune")
+
     trainer_bert.train()
     print("indoBERT fine-tuning complete.")
     print("Evaluating indoBERT...")
     eval_results_bert = trainer_bert.evaluate()
     print(f"indoBERT evaluation results: {eval_results_bert}")
+    mlflow.log_metrics(eval_results_bert)
+
+    mlflow.end_run()
 
 if __name__ == "__main__":
     main()
