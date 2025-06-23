@@ -1,0 +1,27 @@
+Pilihlah salah satu tugas di bawah ini (Experiment Tracking/Feature Store):
+Tugas Experiment Tracking
+Pelajari dan coba menggunakan fitur eksperimen tracking pada tool berikut ini:
+1. MLFlow
+2. Tensorboard
+3. DVC
+Anda bebas menentukan untuk menggunakan model yang akan digunakan untuk
+eksperimen. Buatlah laporan yang berisi perbandingan ketiga tool tersebut:
+a. Komponen/arsitektur sistem
+b. Cara setup instrumentasi/pencatatan eksperimen
+c. Metadata eksperimen yang dikumpulkan
+d. Visualisasi/laporan/dashboard yang disediakan masing2 tools
+e. Evaluasi umum perbandingan ketiga tool di atas
+Tugas Feature Store
+Pelajari dan coba menggunakan fitur feature store pada tool berikut ini:
+1. Feathr
+2. Feast
+3. Hopsworks
+Anda bebas menentukan untuk menggunakan dataset/model yang akan digunakan
+untuk eksperimen. Buatlah laporan yang berisi perbandingan ketiga tool tersebut:
+a. Komponen/arsitektur sistem
+b. Cara setup sistem
+c. Fungsionalitas yang disediakan
+d. Visualisasi/laporan/dashboard yang disediakan masing2 tools
+e. Evaluasi umum perbandingan ketiga tool di atas
+
+

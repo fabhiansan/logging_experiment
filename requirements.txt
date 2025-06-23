@@ -1,0 +1,9 @@
+torch
+mlflow
+transformers
+datasets
+scikit-learn
+accelerate
+dvc[gdrive]
+evaluate
+tensorboard

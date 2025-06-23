@@ -1,0 +1,22 @@
+.aider*
+
+# Virtual Environment
+venv/
+
+# Model output
+results_indoreoberta/
+results_indobert/
+
+# MLFlow
+mlruns/
+
+# DVC
+.dvc/cache
+.dvc/tmp
+
+# Metrics (tracked by DVC)
+metrics/
+
+# Python cache
+__pycache__/
+*.pyc

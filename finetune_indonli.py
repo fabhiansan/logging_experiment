@@ -1,12 +1,15 @@
 import torch
 import mlflow
+import json
+import os
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
-from datasets import load_dataset, load_metric
+from datasets import load_dataset
+import evaluate
 
 def main():
     # 1. Load IndoNLI dataset
     print("Loading IndoNLI dataset...")
-    dataset = load_dataset("afaji/indonli")
+    dataset = load_dataset("afaji/indonli", trust_remote_code=True)
 
     print("Dataset loaded.")
     print(dataset)
@@ -17,7 +20,7 @@ def main():
 
     # 3. Fine-tune indoreoberta
     print("\n--- Fine-tuning indoreoberta ---")
-    model_name_roberta = "indolem/indoreoberta-base"
+    model_name_roberta = "flax-community/indonesian-roberta-base"
     tokenizer_roberta = AutoTokenizer.from_pretrained(model_name_roberta)
     model_roberta = AutoModelForSequenceClassification.from_pretrained(model_name_roberta, num_labels=3) # Assuming 3 labels for NLI (entailment, neutral, contradiction)
 
@@ -25,7 +28,8 @@ def main():
 
     training_args_roberta = TrainingArguments(
         output_dir="./results_indoreoberta",
-        evaluation_strategy="epoch",
+        eval_strategy="epoch",
+        save_strategy="epoch",
         learning_rate=2e-5,
         per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
@@ -34,10 +38,10 @@ def main():
         save_total_limit=1,
         load_best_model_at_end=True,
         metric_for_best_model="accuracy",
-        report_to="mlflow",
+        report_to=["mlflow", "tensorboard"],
     )
 
-    metric = load_metric("accuracy")
+    metric = evaluate.load("accuracy")
 
     def compute_metrics(eval_pred):
         logits, labels = eval_pred
@@ -62,6 +66,11 @@ def main():
     print(f"indoreoberta evaluation results: {eval_results_roberta}")
     mlflow.log_metrics(eval_results_roberta)
 
+    # Save metrics for DVC
+    os.makedirs("metrics", exist_ok=True)
+    with open("metrics/roberta_metrics.json", "w") as f:
+        json.dump(eval_results_roberta, f, indent=4)
+
     mlflow.end_run()
 
     # 4. Fine-tune indoBERT
@@ -74,7 +83,8 @@ def main():
 
     training_args_bert = TrainingArguments(
         output_dir="./results_indobert",
-        evaluation_strategy="epoch",
+        eval_strategy="epoch",
+        save_strategy="epoch",
         learning_rate=2e-5,
         per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
@@ -83,7 +93,7 @@ def main():
         save_total_limit=1,
         load_best_model_at_end=True,
         metric_for_best_model="accuracy",
-        report_to="mlflow",
+        report_to=["mlflow", "tensorboard"],
     )
 
     trainer_bert = Trainer(
@@ -103,6 +113,11 @@ def main():
     eval_results_bert = trainer_bert.evaluate()
     print(f"indoBERT evaluation results: {eval_results_bert}")
     mlflow.log_metrics(eval_results_bert)
+
+    # Save metrics for DVC
+    os.makedirs("metrics", exist_ok=True)
+    with open("metrics/bert_metrics.json", "w") as f:
+        json.dump(eval_results_bert, f, indent=4)
 
     mlflow.end_run()
 
