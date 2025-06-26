@@ -66,7 +66,7 @@ Dasbor TensorBoard merupakan antarmuka utama untuk analisis, terbagi menjadi beb
 
 -   **4.3. Tab Histograms & Distributions**: Menyediakan visualisasi distribusi nilai tensor (misalnya, bobot dan bias) dari waktu ke waktu. Tab ini sangat efektif untuk mendiagnosis masalah pelatihan seperti *vanishing/exploding gradients*.
 
-    ![Dasbor Histogram TensorBoard](https://www.tensorflow.org/images/tensorboard_histograms.png)
+    ![Dasbor Histogram TensorBoard](https://www.tensorflow.org/static/images/tensorboard_histograms.png)
 
 -   **4.4. Tab Images**: Menampilkan data gambar yang dicatat selama pelatihan, seperti sampel dari dataset, *feature maps*, atau plot kustom seperti *confusion matrix*.
 
