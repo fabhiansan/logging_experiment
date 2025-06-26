@@ -58,15 +58,15 @@ Dasbor TensorBoard merupakan antarmuka utama untuk analisis, terbagi menjadi beb
 
 -   **4.1. Tab Scalars**: Tab ini menyajikan plot garis dari data skalar (misalnya, *loss*, akurasi) terhadap langkah pelatihan (*step* atau *epoch*). Fitur ini krusial untuk menganalisis tren kinerja model dan membandingkan hasil dari beberapa *run* eksperimen.
 
-    ![Dasbor Skalar TensorBoard](https://www.tensorflow.org/images/tensorboard_scalars.png)
+    <img src="./images/tensorboard_scalars.png" alt="Dasbor Skalar TensorBoard" width="700"/>
 
 -   **4.2. Tab Graphs**: Tab ini memberikan representasi visual dari arsitektur model sebagai grafik komputasi. Ini berguna untuk verifikasi struktural dan pemahaman aliran data dalam model.
 
-    ![Dasbor Grafik TensorBoard](https://www.tensorflow.org/images/tensorboard_graphs.png)
+    <img src="./images/tensorboard_graphs.png" alt="Dasbor Grafik TensorBoard" width="700"/>
 
 -   **4.3. Tab Histograms & Distributions**: Menyediakan visualisasi distribusi nilai tensor (misalnya, bobot dan bias) dari waktu ke waktu. Tab ini sangat efektif untuk mendiagnosis masalah pelatihan seperti *vanishing/exploding gradients*.
 
-    ![Dasbor Histogram TensorBoard](https://www.tensorflow.org/static/images/tensorboard_histograms.png)
+    <img src="./images/tensorboard_histograms.png" alt="Dasbor Histogram TensorBoard" width="700"/>
 
 -   **4.4. Tab Images**: Menampilkan data gambar yang dicatat selama pelatihan, seperti sampel dari dataset, *feature maps*, atau plot kustom seperti *confusion matrix*.
 
