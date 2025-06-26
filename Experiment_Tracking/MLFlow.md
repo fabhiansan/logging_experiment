@@ -11,7 +11,24 @@ MLFlow adalah platform sumber terbuka yang dirancang untuk mengelola siklus hidu
 MLFlow Tracking adalah komponen inti yang berfungsi sebagai API dan antarmuka pengguna untuk mencatat dan memvisualisasikan data eksperimen.
 
 -   **2.1. Arsitektur Sistem**: Arsitektur MLFlow Tracking dirancang untuk fleksibilitas, mendukung eksekusi lokal maupun terdistribusi.
-    ![Diagram Arsitektur MLFlow](https://mlflow.org/docs/latest/_images/tracking-server.png)
+    ```mermaid
+graph TD
+    subgraph "Arsitektur MLFlow Tracking"
+        A[Kode Pengguna] -->|Mencatat via API| B(MLFlow Tracking Server)
+        B --> C{Backend Store}
+        B --> D{Artifact Store}
+
+        C --> C1[Sistem File]
+        C --> C2[Database (SQL)]
+
+        D --> D1[Direktori Lokal]
+        D --> D2[Penyimpanan Cloud (S3, GCS)]
+    end
+    style B fill:#aaffaa
+    style C fill:#aaddff
+    style D fill:#ffddaa
+```
+*Diagram di atas menggantikan gambar arsitektur untuk menunjukkan komponen utama MLFlow Tracking.*
     -   **Tracking Server**: Entitas pusat yang menerima dan menyimpan data eksperimen.
     -   **Backend Store**: Penyimpanan untuk metadata (parameter, metrik). Dapat berupa sistem file lokal atau database relasional (misalnya, PostgreSQL).
     -   **Artifact Store**: Penyimpanan untuk file besar (model, plot). Dapat berupa direktori lokal atau penyimpanan cloud (misalnya, S3, GCS).
@@ -53,7 +70,19 @@ Kedua komponen ini berfokus pada standardisasi dan manajemen siklus hidup model 
 -   **4.1. MLFlow Models**: Mendefinisikan format pengemasan standar ("flavor") yang memungkinkan model untuk digunakan di berbagai platform deployment (misalnya, sebagai fungsi Python, kontainer Docker, atau di Azure ML).
 
 -   **4.2. MLFlow Model Registry**: Menyediakan repositori terpusat untuk versioning, staging, dan anotasi model.
-    ![Siklus Hidup Model Registry](https://mlflow.org/docs/latest/_images/model-registry.png)
+    ```mermaid
+graph TD
+    subgraph "Siklus Hidup Model Registry"
+        A(Versi Model Baru) --> B{Staging}
+        B --Promosikan--> C{Production}
+        B --Tolak--> E(Archived)
+        C --Arsipkan--> E
+    end
+    style C fill:#aaffaa
+    style B fill:#ffddaa
+    style E fill:#cccccc
+```
+*Diagram di atas menggambarkan alur kerja umum dalam Model Registry dari tahap Staging hingga Production atau Archived.*
     Siklus hidup model di dalam registry umumnya meliputi tahap-tahap berikut: `Staging`, `Production`, dan `Archived`, yang memfasilitasi tata kelola model (governance) yang terstruktur.
 
 ---
