@@ -16,8 +16,8 @@ mlruns/
 .dvc/cache
 .dvc/tmp
 
-# Metrics (tracked by DVC)
-metrics/
+# TensorBoard
+runs/
 
 # Python cache
 __pycache__/
