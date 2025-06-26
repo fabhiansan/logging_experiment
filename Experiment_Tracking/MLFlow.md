@@ -1,144 +1,70 @@
-# MLFlow: Panduan Lengkap untuk Manajemen Siklus Hidup ML
+# Laporan Analisis: Manajemen Siklus Hidup Machine Learning Menggunakan MLFlow
 
-MLFlow adalah platform sumber terbuka yang dirancang untuk mengelola seluruh siklus hidup machine learning, mulai dari eksperimen hingga deployment. Ini bukan hanya alat pelacakan; ini adalah suite terintegrasi yang terdiri dari empat komponen utama.
+## 1. Pendahuluan
 
-1.  **MLFlow Tracking**: Untuk melacak eksperimen, mencatat parameter, metrik, dan artefak.
-2.  **MLFlow Projects**: Untuk mengemas kode ML dalam format yang dapat direproduksi.
-3.  **MLFlow Models**: Format standar untuk mengemas model yang dapat digunakan di berbagai alat deployment.
-4.  **MLFlow Model Registry**: Penyimpanan model terpusat untuk mengelola seluruh siklus hidup model.
+MLFlow adalah platform sumber terbuka yang dirancang untuk mengelola siklus hidup machine learning secara end-to-end. Platform ini menyediakan serangkaian alat terintegrasi untuk mengatasi tantangan dalam pelacakan eksperimen, reproduktifitas, deployment, dan manajemen model. MLFlow terdiri dari empat komponen utama: MLFlow Tracking, MLFlow Projects, MLFlow Models, dan MLFlow Model Registry. Dokumen ini menyajikan analisis mendalam mengenai setiap komponen dan kapabilitasnya.
 
 ---
 
-## 1. MLFlow Tracking: Melacak & Membandingkan Eksperimen
+## 2. Komponen 1: MLFlow Tracking
 
-Ini adalah komponen yang paling sering digunakan dan menjadi inti dari MLFlow.
+MLFlow Tracking adalah komponen inti yang berfungsi sebagai API dan antarmuka pengguna untuk mencatat dan memvisualisasikan data eksperimen.
 
-### a. Arsitektur & Komponen
+-   **2.1. Arsitektur Sistem**: Arsitektur MLFlow Tracking dirancang untuk fleksibilitas, mendukung eksekusi lokal maupun terdistribusi.
+    ![Diagram Arsitektur MLFlow](https://mlflow.org/docs/latest/_images/tracking-server.png)
+    -   **Tracking Server**: Entitas pusat yang menerima dan menyimpan data eksperimen.
+    -   **Backend Store**: Penyimpanan untuk metadata (parameter, metrik). Dapat berupa sistem file lokal atau database relasional (misalnya, PostgreSQL).
+    -   **Artifact Store**: Penyimpanan untuk file besar (model, plot). Dapat berupa direktori lokal atau penyimpanan cloud (misalnya, S3, GCS).
 
-MLFlow Tracking memiliki arsitektur fleksibel yang memungkinkan kolaborasi dan skalabilitas.
+-   **2.2. Implementasi Pencatatan**: MLFlow mendukung dua mode utama untuk instrumentasi kode:
+    -   **Manual Logging**: Memberikan kontrol eksplisit kepada pengguna untuk mencatat data menggunakan API seperti `mlflow.log_param()`, `mlflow.log_metric()`, dan `mlflow.log_artifact()`.
+    -   **Autologging**: Menyediakan fungsionalitas pencatatan otomatis untuk pustaka populer (misalnya, Scikit-learn, TensorFlow, PyTorch) dengan satu panggilan fungsi (`mlflow.sklearn.autolog()`), yang secara signifikan mengurangi kode boilerplate.
 
-![Diagram Arsitektur MLFlow](https://mlflow.org/docs/latest/_images/tracking-server.png)
-
--   **Tracking Server**: Pusat dari MLFlow. Server ini mencatat semua data yang dikirim oleh klien MLFlow.
--   **Backend Store**: Tempat metadata (parameter, metrik) disimpan. Bisa berupa file lokal atau database SQL.
--   **Artifact Store**: Tempat file besar (model, plot) disimpan. Bisa berupa direktori lokal atau penyimpanan cloud (S3, GCS).
-
-### b. Instrumentasi Kode: Manual vs. Autologging
-
-**Pendekatan 1: Manual Logging (Kontrol Penuh)**
-
-Anda memiliki kontrol penuh atas apa yang dicatat dan kapan.
-
-```python
-import mlflow
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.datasets import make_regression
-
-mlflow.set_experiment("House Price Prediction")
-
-with mlflow.start_run(run_name="Random Forest n_estimators=100"):
-    # Catat Parameter
-    mlflow.log_param("n_estimators", 100)
-    mlflow.log_param("max_depth", 5)
-
-    # Latih model
-    X, y = make_regression(n_features=4, n_informative=2)
-    X_train, X_test, y_train, y_test = train_test_split(X, y)
-    model = RandomForestRegressor(n_estimators=100, max_depth=5)
-    model.fit(X_train, y_train)
-    score = model.score(X_test, y_test)
-
-    # Catat Metrik
-    mlflow.log_metric("r2_score", score)
-
-    # Catat Model
-    mlflow.sklearn.log_model(model, "model")
-```
-
-**Pendekatan 2: Autologging (Cepat & Mudah)**
-
-Untuk pustaka populer (Scikit-learn, TensorFlow, PyTorch, dll.), MLFlow dapat secara otomatis mencatat semuanya untuk Anda hanya dengan satu baris kode.
-
-```python
-import mlflow
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.datasets import make_regression
-
-# Aktifkan autologging untuk scikit-learn
-mlflow.sklearn.autolog()
-
-mlflow.set_experiment("House Price Prediction")
-
-with mlflow.start_run():
-    # Tidak perlu log_param, log_metric, atau log_model manual!
-    X, y = make_regression(n_features=4, n_informative=2)
-    X_train, X_test, y_train, y_test = train_test_split(X, y)
-    model = RandomForestRegressor(n_estimators=100, max_depth=5)
-    model.fit(X_train, y_train)
-```
-
-### c. Visualisasi di UI
-
-Jalankan `mlflow ui` di terminal untuk meluncurkan dasbor.
-
--   **Tampilan Daftar Eksperimen**: Halaman utama untuk menyortir dan memfilter semua *run* Anda.
-    ![Tampilan Daftar Run MLFlow](https://mlflow.org/docs/latest/_images/tracking-ui-page.png)
-
--   **Tampilan Perbandingan Run**: Fitur andalan untuk membandingkan hyperparameter dan metrik secara visual.
-    ![Tampilan Perbandingan Run MLFlow](https://mlflow.org/docs/latest/_images/parallel-coordinates-plot.png)
+-   **2.3. Antarmuka Visualisasi**: Dasbor web interaktif (`mlflow ui`) adalah fitur sentral untuk analisis.
+    -   **Tampilan Eksperimen**: Menyajikan tabel ringkasan dari semua *run*, yang dapat disortir dan difilter berdasarkan parameter dan metrik.
+        ![Tampilan Daftar Run MLFlow](https://mlflow.org/docs/latest/_images/tracking-ui-page.png)
+    -   **Fitur Perbandingan**: Memungkinkan perbandingan visual dari beberapa *run* untuk menganalisis dampak hyperparameter terhadap kinerja model.
+        ![Tampilan Perbandingan Run MLFlow](https://mlflow.org/docs/latest/_images/parallel-coordinates-plot.png)
 
 ---
 
-## 2. MLFlow Projects: Reproducibility
+## 3. Komponen 2: MLFlow Projects
 
-Komponen ini mengemas kode Anda dalam format standar sehingga dapat dijalankan kembali oleh siapa saja di platform apa pun. Ini dicapai dengan file `MLproject`.
+Komponen ini bertujuan untuk meningkatkan reproduktifitas dengan mengemas kode dalam format standar. Hal ini dicapai melalui file konfigurasi `MLproject` yang mendefinisikan dependensi (misalnya, file `conda.yaml`) dan titik masuk eksekusi.
 
-**Contoh `MLproject` file:**
+**Contoh `MLproject`:**
 ```yaml
-name: My Awesome Project
-
+name: My Project
 conda_env: conda.yaml
-
 entry_points:
   main:
     parameters:
       alpha: {type: float, default: 0.5}
-      l1_ratio: {type: float, default: 0.1}
-    command: "python train.py --alpha {alpha} --l1_ratio {l1_ratio}"
+    command: "python train.py --alpha {alpha}"
 ```
-
-Anda dapat menjalankan proyek ini dengan: `mlflow run . -P alpha=0.4`
+Eksekusi proyek dilakukan melalui perintah `mlflow run`.
 
 ---
 
-## 3. MLFlow Models & Model Registry: Deployment & Governance
+## 4. Komponen 3 & 4: MLFlow Models dan Model Registry
 
--   **MLFlow Models**: Menyediakan format standar ("flavor") untuk menyimpan model yang dapat dipahami oleh berbagai alat deployment.
--   **Model Registry**: Sebuah repositori terpusat untuk mengelola siklus hidup model Anda.
+Kedua komponen ini berfokus pada standardisasi dan manajemen siklus hidup model pasca-pelatihan.
 
-![Siklus Hidup Model Registry](https://mlflow.org/docs/latest/_images/model-registry.png)
+-   **4.1. MLFlow Models**: Mendefinisikan format pengemasan standar ("flavor") yang memungkinkan model untuk digunakan di berbagai platform deployment (misalnya, sebagai fungsi Python, kontainer Docker, atau di Azure ML).
 
-**Siklus Hidup Model:**
-1.  **Registrasi**: Setelah menemukan model yang bagus dari eksperimen, Anda mendaftarkannya ke Registry.
-2.  **Versioning**: Setiap model baru yang didaftarkan dengan nama yang sama akan membuat versi baru (Version 1, Version 2, dst.).
-3.  **Staging**: Anda dapat mempromosikan versi model ke berbagai tahap: `Staging`, `Production`, atau `Archived`.
-4.  **Deployment**: Aplikasi Anda dapat secara terprogram mengambil model versi `Production` terbaru untuk inferensi.
-
-**Contoh Kode Mendaftarkan Model:**
-```python
-# Di dalam run MLFlow Anda...
-result = mlflow.register_model(
-    "runs:/{}/model".format(mlflow.active_run().info.run_id),
-    "MyProductionModel"
-)
-```
+-   **4.2. MLFlow Model Registry**: Menyediakan repositori terpusat untuk versioning, staging, dan anotasi model.
+    ![Siklus Hidup Model Registry](https://mlflow.org/docs/latest/_images/model-registry.png)
+    Siklus hidup model di dalam registry umumnya meliputi tahap-tahap berikut: `Staging`, `Production`, dan `Archived`, yang memfasilitasi tata kelola model (governance) yang terstruktur.
 
 ---
 
-## Evaluasi & Kapan Menggunakannya
+## 5. Evaluasi dan Kesimpulan
 
--   **Gunakan MLFlow Tracking ketika**: Anda perlu menjalankan banyak eksperimen dan dengan mudah membandingkannya untuk menemukan model terbaik.
--   **Gunakan MLFlow Projects ketika**: Anda perlu berbagi kode Anda dengan orang lain atau menjalankannya kembali di lingkungan produksi dengan cara yang dapat direproduksi.
--   **Gunakan MLFlow Model Registry ketika**: Anda memiliki alur kerja deployment yang formal dan perlu mengelola versi model yang disajikan kepada pengguna.
+-   **5.1. Keunggulan**:
+    -   **Manajemen End-to-End**: Menyediakan solusi terintegrasi dari eksperimen hingga deployment.
+    -   **Skalabilitas Perbandingan**: Sangat efektif untuk membandingkan sejumlah besar eksperimen.
+    -   **Fleksibilitas**: Agnostik terhadap pustaka machine learning dan dapat di-deploy di berbagai lingkungan.
+
+-   **5.2. Keterbatasan**:
+    -   **Sensitivitas Lingkungan**: Fungsionalitas, terutama pencatatan artefak, dapat dipengaruhi oleh konfigurasi dan perizinan lingkungan eksekusi.
+    -   **Visualisasi Pelatihan**: Meskipun mampu memplot metrik, tingkat interaktivitas untuk analisis dinamika pelatihan tidak sedalam yang ditawarkan oleh TensorBoard.
