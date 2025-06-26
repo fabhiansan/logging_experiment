@@ -20,3 +20,4 @@ metrics/
 # Python cache
 __pycache__/
 *.pyc
+/metrics
