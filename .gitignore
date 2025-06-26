@@ -2,6 +2,8 @@
 
 # Virtual Environment
 venv/
+.venv
+.venv-tensorboard//
 
 # Model output
 results_indoreoberta/

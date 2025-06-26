@@ -6,6 +6,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification, Trai
 from datasets import load_dataset
 import evaluate
 
+
 def main():
     # 1. Load IndoNLI dataset
     print("Loading IndoNLI dataset...")
@@ -18,11 +19,12 @@ def main():
     def preprocess_function(examples, tokenizer):
         return tokenizer(examples["premise"], examples["hypothesis"], truncation=True, padding="max_length")
 
-    # 3. Fine-tune indoreoberta
+        # 3. Fine-tune indoreoberta
+
     print("\n--- Fine-tuning indoreoberta ---")
     model_name_roberta = "flax-community/indonesian-roberta-base"
     tokenizer_roberta = AutoTokenizer.from_pretrained(model_name_roberta)
-    model_roberta = AutoModelForSequenceClassification.from_pretrained(model_name_roberta, num_labels=3) # Assuming 3 labels for NLI (entailment, neutral, contradiction)
+    model_roberta = AutoModelForSequenceClassification.from_pretrained(model_name_roberta, num_labels=3)
 
     tokenized_datasets_roberta = dataset.map(lambda x: preprocess_function(x, tokenizer_roberta), batched=True)
 
@@ -33,7 +35,7 @@ def main():
         learning_rate=2e-5,
         per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
-        num_train_epochs=3,
+        num_train_epochs=1,  # CHANGED: Set to 1 epoch
         weight_decay=0.01,
         save_total_limit=1,
         load_best_model_at_end=True,
@@ -75,9 +77,9 @@ def main():
 
     # 4. Fine-tune indoBERT
     print("\n--- Fine-tuning indoBERT ---")
-    model_name_bert = "indobenchmark/indobert-base-p1" # Or indobenchmark/indobert-large-p2
+    model_name_bert = "indobenchmark/indobert-base-p1"
     tokenizer_bert = AutoTokenizer.from_pretrained(model_name_bert)
-    model_bert = AutoModelForSequenceClassification.from_pretrained(model_name_bert, num_labels=3) # Assuming 3 labels for NLI
+    model_bert = AutoModelForSequenceClassification.from_pretrained(model_name_bert, num_labels=3)
 
     tokenized_datasets_bert = dataset.map(lambda x: preprocess_function(x, tokenizer_bert), batched=True)
 
@@ -88,7 +90,7 @@ def main():
         learning_rate=2e-5,
         per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
-        num_train_epochs=3,
+        num_train_epochs=1,  # CHANGED: Set to 1 epoch
         weight_decay=0.01,
         save_total_limit=1,
         load_best_model_at_end=True,
@@ -121,5 +123,9 @@ def main():
 
     mlflow.end_run()
 
+
 if __name__ == "__main__":
+    # ADD THIS LINE to prevent the out-of-memory error by only using the first GPU
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
     main()
