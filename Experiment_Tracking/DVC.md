@@ -18,9 +18,7 @@ graph LR
     D --> E[Remote Storage]
     C -->|Pointer| F[Large Data / Artifacts]
     F --> D
-    style D fill:#f9f,stroke:#333,stroke-width:2
-    style C fill:#bbf,stroke:#333,stroke-width:2
-    style A fill:#bfb,stroke:#333,stroke-width:2
+
 ```
 
 *Gambar diganti dengan diagram Mermaid di atas untuk memastikan dapat dirender tanpa kebutuhan file eksternal.*
