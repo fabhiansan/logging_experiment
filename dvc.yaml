@@ -1,3 +1,4 @@
 metrics:
   - metrics/bert_metrics.json
   - metrics/roberta_metrics.json
+  - metrics/simple_metrics.json
