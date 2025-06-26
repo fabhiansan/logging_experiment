@@ -1,45 +1,101 @@
-# DVC Experiment Tracking
+# DVC (Data Version Control): Reproducibilitas Berbasis Git
 
-## a. Komponen/arsitektur sistem
-DVC (Data Version Control) bekerja di atas Git. Arsitekturnya sederhana dan kuat:
-- **Metadata di Git**: File `.dvc` kecil dan `dvc.yaml` disimpan di Git. File-file ini berisi informasi tentang cara mereproduksi data atau model, tetapi bukan data itu sendiri.
-- **Cache DVC**: Data besar, model, atau artefak disimpan dalam direktori `.dvc/cache` (yang diabaikan oleh Git).
-- **Remote Storage**: Cache dapat disinkronkan dengan penyimpanan jarak jauh seperti Google Drive, S3, atau server SSH.
+DVC adalah sistem kontrol versi sumber terbuka untuk proyek machine learning. Filosofi utamanya adalah memperluas Git, memungkinkan Anda untuk mengelola data besar, model, dan metrik dengan alur kerja yang sama seperti Anda mengelola kode.
 
-## b. Cara setup instrumentasi/pencatatan eksperimen
-1.  **Instalasi**: `pip install dvc`
-2.  **Inisialisasi**: `dvc init` untuk menyiapkan struktur direktori DVC dalam repositori Git.
-3.  **Mendefinisikan Metrik**: Dalam file `dvc.yaml`, Anda menentukan *path* ke file metrik (biasanya JSON, YAML, atau CSV) yang dihasilkan oleh skrip pelatihan Anda.
+**DVC bukan pengganti Git.** Ia bekerja *bersama* Git untuk memberikan solusi versioning yang lengkap.
+
+---
+
+## a. Arsitektur & Cara Kerja
+
+DVC secara cerdas memisahkan metadata dari data besar.
+
+![Arsitektur DVC](https://dvc.org/img/flow- DVC-git-files.png)
+
+1.  **Git**: Melacak semua file kode dan file metadata `.dvc` yang kecil.
+2.  **Pointer `.dvc`**: Ketika Anda menambahkan file besar (seperti `data.csv`) ke DVC, DVC menggantinya dengan file teks kecil (`data.csv.dvc`). File ini bertindak sebagai *pointer* ke data sebenarnya dan berisi hash unik dari konten data.
+3.  **Cache DVC**: Data besar yang sebenarnya dipindahkan ke direktori tersembunyi `.dvc/cache`. Struktur ini dioptimalkan untuk efisiensi penyimpanan.
+4.  **Remote Storage**: Anda dapat mengonfigurasi DVC untuk mendorong (*push*) cache ini ke penyimpanan jarak jauh seperti Google Drive, S3, GCS, atau server SSH Anda sendiri.
+
+Alur kerja ini berarti repositori Git Anda tetap kecil dan cepat, sementara data besar Anda tetap di-versioning dan dapat diakses.
+
+---
+
+## b. Alur Kerja & Instrumentasi
+
+Tidak seperti MLFlow atau TensorBoard, **DVC tidak memerlukan instrumentasi kode di dalam skrip pelatihan Anda**. Sebaliknya, Anda mendefinisikan alur kerja Anda dalam file `dvc.yaml`.
+
+### Alur Kerja Dasar (Versioning Data)
+
+1.  **Inisialisasi**: `dvc init` (membuat direktori `.dvc`)
+2.  **Menambahkan Data**: `dvc add path/to/your/data.csv`
+    -   Ini membuat `data.csv.dvc` dan menambahkan data ke cache.
+3.  **Commit ke Git**: `git add data.csv.dvc .gitignore` dan `git commit`
+4.  **Push Data (Opsional)**: `dvc push` (mengunggah cache ke remote storage)
+
+### Alur Kerja Eksperimen
+
+Anda mendefinisikan *stage* (tahapan) dalam file `dvc.yaml`. Setiap stage adalah langkah dalam pipeline Anda (misalnya, `preprocess`, `train`, `evaluate`).
 
 **Contoh `dvc.yaml`:**
 ```yaml
-metrics:
-  - metrics/simple_metrics.json
-  - metrics/classification_metrics.json
+stages:
+  train:
+    cmd: python train.py
+    deps:
+      - train.py
+      - data/features.csv
+    params:
+      - n_estimators
+      - max_depth
+    outs:
+      - model.pkl
+    metrics:
+      - metrics.json: 
+          cache: false # Metrik adalah file kecil, tidak perlu di-cache DVC
 ```
 
-**Contoh Skrip Pelatihan (Python):**
-```python
-import json
+-   `cmd`: Perintah yang akan dijalankan.
+-   `deps`: Dependensi (file kode atau data). DVC akan menjalankan ulang stage ini jika dependensi berubah.
+-   `params`: Hyperparameter yang dilacak dari file `params.yaml`.
+-   `outs`: Output yang dihasilkan (model, file, dll.).
+-   `metrics`: File metrik yang akan dilacak.
 
-# Setelah pelatihan selesai
-metrics = {"accuracy": 0.95, "loss": 0.12}
+Untuk menjalankan pipeline, Anda menggunakan: `dvc exp run`
 
-with open("metrics/classification_metrics.json", "w") as f:
-    json.dump(metrics, f, indent=4)
+---
+
+## c. Visualisasi & Perbandingan
+
+DVC unggul dalam perbandingan berbasis teks di terminal, yang cepat dan efisien.
+
+### Membandingkan Eksperimen
+
+Perintah `dvc exp show` menampilkan tabel dari semua eksperimen yang telah Anda jalankan, lengkap dengan parameter dan metriknya.
+
+![dvc exp show](https://dvc.org/img/exp-show-table.png)
+
+### Melihat Perbedaan Metrik
+
+Perintah `dvc metrics diff` memberikan perbandingan yang jelas antara metrik dari *workspace* Anda saat ini dengan commit Git sebelumnya.
+
+```sh
+$ dvc metrics diff
+Path           Metric    HEAD      workspace    Change
+metrics.json   accuracy  0.925     0.951        0.026
+metrics.json   loss      0.153     0.101       -0.052
 ```
 
-## c. Metadata eksperimen yang dikumpulkan
-- **Metrik**: Nilai apa pun yang disimpan dalam file metrik yang ditentukan di `dvc.yaml`.
-- **Parameter**: Parameter yang relevan untuk setiap tahap dapat ditentukan dalam `dvc.yaml`, memungkinkan pelacakan perubahan konfigurasi.
-- **Dependensi dan Output**: DVC melacak dependensi (kode, data) dan output (model, metrik) untuk setiap tahap, memastikan reproduktifitas penuh.
+---
 
-## d. Visualisasi/laporan/dashboard yang disediakan
-Visualisasi DVC terutama berbasis **Command-Line Interface (CLI)**, yang membuatnya cepat dan efisien untuk perbandingan langsung di terminal.
-- `dvc metrics show`: Menampilkan tabel metrik dari *run* terbaru.
-- `dvc metrics diff`: Membandingkan metrik antara *workspace* saat ini dan commit Git terakhir (atau commit lainnya).
-- `dvc plots show`: Dapat menghasilkan plot sederhana (misalnya, kurva presisi-recall) jika data plot didefinisikan.
+## d. Evaluasi Umum
 
-## e. Evaluasi umum
-- **Kelebihan**: Integrasi yang sangat erat dengan Git menjadikannya alat yang luar biasa untuk **reproduktifitas**. Sangat baik untuk versioning data dan model bersama kode. Perbandingan metrik di CLI sangat cepat dan efisien.
-- **Kekurangan**: Kemampuan visualisasinya tidak sekaya MLFlow atau TensorBoard. DVC lebih fokus pada pelacakan dan versioning daripada analisis visual yang mendalam.
+-   **Kelebihan**:
+    -   **Reproducibilitas Terbaik**: Dengan mem-versioning kode, data, parameter, dan metrik bersama-sama, DVC menjamin reproduktifitas yang sesungguhnya.
+    -   **Berbasis Git**: Alur kerjanya terasa alami bagi siapa saja yang sudah terbiasa dengan Git.
+    -   **Efisien**: Tidak menyimpan duplikat data. Bekerja dengan baik untuk file data yang sangat besar.
+    -   **Agnostik Bahasa & Framework**: Karena bekerja di luar kode Anda, ini dapat digunakan dengan bahasa atau pustaka apa pun.
+
+-   **Kekurangan**:
+    -   **Kurva Pembelajaran**: Membutuhkan pemahaman tentang konsep Git dan DVC itu sendiri.
+    -   **Kurang Visual**: Meskipun ada beberapa ekstensi untuk plot, kekuatan utamanya ada di terminal, bukan di dasbor web yang kaya seperti MLFlow atau TensorBoard.

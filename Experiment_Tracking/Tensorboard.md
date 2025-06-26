@@ -1,53 +1,95 @@
-# Tensorboard Experiment Tracking
+# TensorBoard: Visualisasi & Debugging Pelatihan Model
 
-## a. Komponen/arsitektur sistem
-TensorBoard bekerja dengan membaca file log yang dihasilkan selama proses pelatihan. 
-- **Summary Writer**: Dalam kode Anda (misalnya, Python), Anda membuat `SummaryWriter` yang menulis data (metrik, gambar, dll.) ke direktori log yang ditentukan (misalnya, direktori `runs/`).
-- **Log Files**: File-file ini berisi data dalam format protobuf yang dioptimalkan untuk dibaca oleh TensorBoard.
-- **TensorBoard UI**: Server web lokal yang membaca dari direktori log dan menyajikan data dalam dasbor interaktif.
+TensorBoard adalah toolkit visualisasi dari TensorFlow. Ini memungkinkan Anda untuk melihat dan memahami eksperimen, grafik model, dan metrik machine learning Anda. Ini adalah alat yang sangat diperlukan untuk **debugging** dan **optimisasi** proses pelatihan.
 
-## b. Cara setup instrumentasi/pencatatan eksperimen
-1.  **Instalasi**: `pip install tensorboard` (biasanya sudah terinstal bersama TensorFlow atau PyTorch).
-2.  **Membuat Writer**: Inisialisasi `SummaryWriter` dari `torch.utils.tensorboard` (untuk PyTorch) atau `tf.summary` (untuk TensorFlow), dengan menunjuk ke direktori log.
-3.  **Pencatatan**:
-    - `writer.add_scalar("tag", nilai_skalar, global_step)`: Mencatat nilai numerik tunggal pada langkah tertentu (misalnya, *loss* per *epoch*).
-    - `writer.add_image("tag", array_gambar, global_step)`: Mencatat gambar (misalnya, *confusion matrix*).
-    - `writer.add_histogram("tag", nilai, global_step)`: Mencatat distribusi nilai.
+---
+
+## a. Komponen & Arsitektur Sistem
+
+Arsitektur TensorBoard sangat sederhana dan berbasis file:
+
+1.  **Summary Writer**: Dalam kode Anda (PyTorch atau TensorFlow), Anda membuat sebuah `SummaryWriter`.
+2.  **Event Files**: Penulis ini mengambil data yang Anda catat (seperti *loss*, akurasi, atau gambar) dan menuliskannya ke dalam file log biner khusus yang disebut *event files*. File-file ini biasanya disimpan dalam direktori seperti `runs/`.
+3.  **TensorBoard Server**: Anda menjalankan server web lokal (`tensorboard --logdir runs`) yang membaca *event files* ini dan menyajikannya dalam dasbor interaktif di browser Anda.
+
+Arsitektur ini membuatnya sangat portabel, karena Anda hanya perlu membagikan direktori `runs` agar orang lain dapat mereproduksi visualisasi Anda.
+
+---
+
+## b. Cara Setup & Instrumentasi Eksperimen
+
+Anda dapat menggunakan TensorBoard dengan PyTorch melalui `torch.utils.tensorboard`.
+
+1.  **Instalasi**: `pip install tensorboard`
+2.  **Inisialisasi Writer**: Buat instance `SummaryWriter`, menentukan direktori log.
+3.  **Pencatatan**: Gunakan metode writer seperti `add_scalar()`, `add_image()`, atau `add_histogram()` di dalam *training loop* Anda.
 
 **Contoh Kode (PyTorch):**
+
 ```python
+import torch
 from torch.utils.tensorboard import SummaryWriter
-import numpy as np
 
-# Buat writer yang akan menulis ke direktori 'runs/my_experiment'
-writer = SummaryWriter('runs/my_experiment')
+# 1. Inisialisasi writer, setiap run akan berada di sub-folder unik
+writer = SummaryWriter('runs/fashion_mnist_experiment_1')
 
-# Catat metrik skalar dari waktu ke waktu
+# Contoh data (biasanya di dalam training loop Anda)
 for epoch in range(100):
-    loss = 0.1 * epoch
+    # Hitung loss dan accuracy dari model Anda
+    loss = 0.1 * (1 / (epoch + 1))
+    accuracy = 1.0 - loss
+
+    # 2. Catat metrik skalar
+    # Argumen pertama adalah nama plot, kedua adalah nilai y, ketiga adalah nilai x (step)
     writer.add_scalar('Loss/train', loss, epoch)
+    writer.add_scalar('Accuracy/train', accuracy, epoch)
 
-# Catat sebuah gambar (misalnya, gambar acak)
-random_image = np.random.rand(3, 64, 64)
-writer.add_image('My Image', random_image, 0)
+# 3. Catat gambar (contoh: confusion matrix atau sampel gambar)
+# (Anda akan membuat gambar ini menggunakan matplotlib atau PIL)
+# dummy_image = torch.rand(3, 100, 100)
+# writer.add_image('four_fashion_mnist_images', dummy_image)
 
+# 4. Tutup writer setelah selesai
 writer.close()
 ```
 
-## c. Metadata eksperimen yang dikumpulkan
-- **Skalar**: Metrik numerik yang dilacak dari waktu ke waktu. Ini adalah kasus penggunaan yang paling umum.
-- **Gambar**: Plot statis atau gambar yang relevan dengan pelatihan.
-- **Histogram**: Distribusi bobot atau bias model dari waktu ke waktu.
-- **Graph**: Visualisasi dari arsitektur model (grafik komputasi).
-- **Teks**: Catatan teks atau informasi lainnya.
+---
 
-## d. Visualisasi/laporan/dashboard yang disediakan
-TensorBoard unggul dalam visualisasi dinamis dari **satu kali proses pelatihan**.
-- **Plot Time-Series**: Grafik interaktif yang indah untuk semua skalar yang dicatat, memungkinkan Anda untuk memperbesar, memperkecil, dan menghaluskan kurva.
-- **Image Viewer**: Menampilkan semua gambar yang Anda catat, dengan slider untuk menavigasi melalui berbagai langkah.
-- **Graph Explorer**: Memungkinkan Anda menjelajahi arsitektur model secara interaktif.
-- **Distribution dan Histogram**: Visualisasi detail dari distribusi bobot dan bias.
+## c. Visualisasi & Dasbor yang Disediakan
 
-## e. Evaluasi umum
-- **Kelebihan**: Alat visualisasi terbaik untuk menganalisis dinamika pelatihan secara mendalam. Plot skalar dan penampil gambar sangat informatif dan interaktif. Sangat mudah diintegrasikan dengan PyTorch dan TensorFlow.
-- **Kekurangan**: Tidak dirancang untuk membandingkan banyak *run* yang berbeda secara efisien seperti MLFlow. Setiap *run* biasanya dilihat secara terpisah, meskipun perbandingan dasar dimungkinkan.
+Dasbor TensorBoard adalah fitur utamanya. Setiap tab dirancang untuk memvisualisasikan aspek yang berbeda dari pelatihan Anda.
+
+### **Scalars**
+Tab ini adalah yang paling sering digunakan. Ini memplot metrik sederhana seperti *loss* dan akurasi dari waktu ke waktu. Anda dapat membandingkan beberapa *run* pada plot yang sama, memperhalus kurva, dan menganalisis kinerja.
+
+![Dasbor Skalar TensorBoard](https://www.tensorflow.org/images/tensorboard_scalars.png)
+
+### **Graphs**
+Tab ini memungkinkan Anda untuk memvisualisasikan arsitektur model Anda. Ini sangat berguna untuk memastikan model Anda dibangun seperti yang Anda harapkan dan untuk memahami aliran data.
+
+![Dasbor Grafik TensorBoard](https://www.tensorflow.org/images/tensorboard_graphs.png)
+
+### **Histograms & Distributions**
+Tab ini memberikan pandangan mendalam tentang bagaimana distribusi bobot dan bias dalam model Anda berubah dari waktu ke waktu. Ini bisa menjadi alat yang sangat kuat untuk mendiagnosis masalah seperti *vanishing* atau *exploding gradients*.
+
+-   **Distributions View**: Menampilkan distribusi nilai tensor pada setiap *epoch*.
+-   **Histograms View**: Menampilkan bagaimana distribusi tersebut berubah dari waktu ke waktu dalam tampilan 3D.
+
+![Dasbor Histogram TensorBoard](https://www.tensorflow.org/images/tensorboard_histograms.png)
+
+### **Images**
+Memvisualisasikan gambar yang Anda catat, seperti gambar input, *feature maps*, atau plot yang dihasilkan seperti *confusion matrix*.
+
+---
+
+## d. Evaluasi Umum
+
+-   **Kelebihan**:
+    -   **Visualisasi Mendalam**: Tak tertandingi untuk analisis *real-time* dan *post-hoc* dari dinamika pelatihan. Sangat baik untuk menjawab "Mengapa?"
+    -   **Debugging**: Alat terbaik untuk men-debug masalah pelatihan yang kompleks dengan memvisualisasikan bobot, gradien, dan grafik komputasi.
+    -   **Interaktif**: UI sangat responsif, memungkinkan Anda untuk memperbesar, menggeser, dan menjelajahi data Anda secara intuitif.
+    -   **Ekosistem**: Terintegrasi dengan baik dengan PyTorch, TensorFlow, dan pustaka lainnya.
+
+-   **Kekurangan**:
+    -   **Bukan untuk Perbandingan Skala Besar**: Meskipun Anda dapat membandingkan beberapa *run*, ini menjadi tidak praktis untuk membandingkan puluhan atau ratusan *run* seperti yang bisa dilakukan MLFlow.
+    -   **Tidak Ada Manajemen Siklus Hidup**: TensorBoard berfokus murni pada visualisasi dan tidak memiliki fitur untuk versioning, pengemasan, atau deployment model.
