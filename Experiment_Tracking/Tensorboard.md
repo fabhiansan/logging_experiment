@@ -59,12 +59,11 @@ Dasbor TensorBoard merupakan antarmuka utama untuk analisis, terbagi menjadi beb
 -   **4.1. Tab Scalars**: Tab ini menyajikan plot garis dari data skalar (misalnya, *loss*, akurasi) terhadap langkah pelatihan (*step* atau *epoch*). Fitur ini krusial untuk menganalisis tren kinerja model dan membandingkan hasil dari beberapa *run* eksperimen.
 
     ```mermaid
-xychart-beta
-    title "Training Metrics Over Time"
-    x-axis "Epoch" [1, 2, 3, 4, 5]
-    y-axis "Value" 0 --> 1.0
-    line "Loss" [0.8, 0.5, 0.3, 0.2, 0.15]
-    line "Accuracy" [0.6, 0.8, 0.85, 0.9, 0.92]
+flowchart LR
+    subgraph "Scalars Workflow"
+        A[Training Loop] -->|add_scalar| B[Event Files]
+        B -->|tensorboard| C[Scalars Dashboard]
+    end
 ```
 *Diagram di atas merepresentasikan plot skalar untuk memantau metrik seperti loss dan akurasi.*
 
@@ -87,11 +86,11 @@ graph TD
 -   **4.3. Tab Histograms & Distributions**: Menyediakan visualisasi distribusi nilai tensor (misalnya, bobot dan bias) dari waktu ke waktu. Tab ini sangat efektif untuk mendiagnosis masalah pelatihan seperti *vanishing/exploding gradients*.
 
     ```mermaid
-xychart-beta
-    title "Contoh Distribusi Bobot (Histogram)"
-    x-axis "Rentang Bobot" ["-1.0", "-0.5", "0.0", "0.5", "1.0"]
-    y-axis "Frekuensi" 0 --> 600
-    bar [50, 200, 500, 210, 45]
+flowchart LR
+    subgraph "Histogram Workflow"
+        D[Weights/Bias Values] -->|add_histogram| E[Event Files]
+        E -->|tensorboard| F[Histogram Dashboard]
+    end
 ```
 *Diagram di atas menunjukkan distribusi bobot dalam sebuah layer, yang berguna untuk analisis gradien.*
 
