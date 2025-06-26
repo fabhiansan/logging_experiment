@@ -10,7 +10,7 @@ DVC (Data Version Control) adalah sistem kontrol versi sumber terbuka yang diran
 
 Prinsip dasar DVC adalah pemisahan antara metadata dan data besar, yang memungkinkan Git untuk tetap berperforma tinggi.
 
-<img src="./images/dvc_architecture.png" alt="Diagram Arsitektur DVC" width="700"/>
+<img src="images/dvc_architecture.png" alt="Diagram Arsitektur DVC" width="700"/>
 
 -   **2.1. Integrasi dengan Git**: DVC beroperasi sebagai lapisan di atas Git. Git bertanggung jawab untuk melacak semua file kode dan file metadata `.dvc` yang berukuran kecil.
 -   **2.2. File Pointer `.dvc`**: Ketika sebuah file besar (misalnya, `dataset.zip`) dilacak oleh DVC (`dvc add dataset.zip`), DVC akan membuat file pointer teks kecil (`dataset.zip.dvc`). File ini berisi hash MD5 dari konten data asli dan informasi lokasi, yang kemudian di-commit ke Git.
